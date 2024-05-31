@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+import json
 
 # Inizializza Mediapipe e OpenCV
 mp_hands = mp.solutions.hands
@@ -10,15 +11,15 @@ mp_drawing = mp.solutions.drawing_utils
 # Avvia la cattura video
 cap = cv2.VideoCapture(1)
 
-# Dizionario per memorizzare i punti di riferimento dei gesti
-gestures = {}
-
-def save_gesture(landmarks, label):
-    gestures[label] = landmarks
-
-print("Premi 's' per salvare il gesto corrente, seguito dalla lettera del gesto. Premi 'Esc' per uscire.")
+# Carica i dati dei gesti
+gestures = np.load('gestures.npy', allow_pickle=True).item()
 
 
+def recognize_gesture(landmarks):
+    for label, saved_landmarks in gestures.items():
+        if np.allclose(saved_landmarks, landmarks, atol=0.05):  # Tolleranza per il confronto
+            return label
+    return "Gesto sconosciuto"
 
 while cap.isOpened():
     success, image = cap.read()
@@ -36,22 +37,12 @@ while cap.isOpened():
         for hand_landmarks in results.multi_hand_landmarks:
             mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
             landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
-
-            # Mostra i punti di riferimento sullo schermo
-            cv2.putText(image, "Premi 's' per salvare il gesto", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-
-            # Salva il gesto quando viene premuto il tasto 's'
-            if cv2.waitKey(1) & 0xFF == ord('s'):
-                label = input("Inserisci la lettera per il gesto corrente: ")
-    
+            gesture = recognize_gesture(landmarks)
+            cv2.putText(image, gesture, (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
     cv2.imshow('Hand Gesture Recognition', image)
-    if cv2.waitKey(1) & 0xFF == 27:
+    if cv2.waitKey(5) & 0xFF == 27:
         break
 
 cap.release()
 cv2.destroyAllWindows()
-
-# Salva i dati dei gesti in un file
-np.save('gestures.npy', gestures)
-print("Gesti salvati in gestures.npy")
