@@ -13,7 +13,7 @@ mp_drawing = mp.solutions.drawing_utils
 
 # catturiamo video utilizzando OpenCv
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1) # viene impostato 1 perchè nel mio caso lo riconosce in questo modo
 
 # creo un loop per elaborare ogni frame del video.
 
