@@ -8,7 +8,7 @@ hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_c
 mp_drawing = mp.solutions.drawing_utils
 
 # Avvia la cattura video
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 # Dizionario per memorizzare i punti di riferimento dei gesti
 gestures = {}
@@ -17,7 +17,6 @@ def save_gesture(landmarks, label):
     gestures[label] = landmarks
 
 print("Premi 's' per salvare il gesto corrente, seguito dalla lettera del gesto. Premi 'Esc' per uscire.")
-
 
 
 while cap.isOpened():
@@ -43,7 +42,7 @@ while cap.isOpened():
             # Salva il gesto quando viene premuto il tasto 's'
             if cv2.waitKey(1) & 0xFF == ord('s'):
                 label = input("Inserisci la lettera per il gesto corrente: ")
-    
+                save_gesture(landmarks, label)
 
     cv2.imshow('Hand Gesture Recognition', image)
     if cv2.waitKey(1) & 0xFF == 27:

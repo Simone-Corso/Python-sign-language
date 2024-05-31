@@ -1,7 +1,6 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-import json
 
 # Inizializza Mediapipe e OpenCV
 mp_hands = mp.solutions.hands
@@ -9,14 +8,13 @@ hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_c
 mp_drawing = mp.solutions.drawing_utils
 
 # Avvia la cattura video
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 # Carica i dati dei gesti
-gestures = np.load('gestures.npy', allow_pickle=True).item()
+gesti = np.load('gestures.npy', allow_pickle=True).item()
 
-
-def recognize_gesture(landmarks):
-    for label, saved_landmarks in gestures.items():
+def riconosci_gesto(landmarks):
+    for label, saved_landmarks in gesti.items():
         if np.allclose(saved_landmarks, landmarks, atol=0.05):  # Tolleranza per il confronto
             return label
     return "Gesto sconosciuto"
@@ -37,10 +35,10 @@ while cap.isOpened():
         for hand_landmarks in results.multi_hand_landmarks:
             mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
             landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
-            gesture = recognize_gesture(landmarks)
-            cv2.putText(image, gesture, (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+            gesto = riconosci_gesto(landmarks)
+            cv2.putText(image, gesto, (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-    cv2.imshow('Hand Gesture Recognition', image)
+    cv2.imshow('Riconoscimento dei gesti', image)
     if cv2.waitKey(5) & 0xFF == 27:
         break
 
