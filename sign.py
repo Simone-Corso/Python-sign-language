@@ -64,3 +64,30 @@ if results.multi_hand_landmarks:
             print(id, cx, cy)
 
 
+# Prova di riconoscimento semplice 
+
+def recognize_gesture(landmarks):
+    thumb_tip = landmarks[4]
+    thumb_mcp = landmarks[2]
+
+    if thumb_tip.y < thumb_mcp.y:
+        return "Pollice in su"
+    else:
+        return "Pollice in giù"
+
+if results.multi_hand_landmarks:
+    for hand_landmarks in results.multi_hand_landmarks:
+        gesture = recognize_gesture(hand_landmarks.landmark)
+        print(gesture)
+
+
+
+# aggiungere del testo o delle annotazioni sull'immagine per visualizzare il gesto riconosciuto
+
+
+if results.multi_hand_landmarks:
+    for hand_landmarks in results.multi_hand_landmarks:
+        gesture = recognize_gesture(hand_landmarks.landmark)
+        cv2.putText(image, gesture, (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+
+
