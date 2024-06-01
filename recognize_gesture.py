@@ -11,7 +11,7 @@ mp_drawing = mp.solutions.drawing_utils
 cap = cv2.VideoCapture(0)
 
 # Carica i dati dei gesti
-gesti = np.load('gestures.txt', allow_pickle=True).item()
+gesti = np.load('gestures.npy', allow_pickle=True).item()
 
 def riconosci_gesto(landmarks):
     for label, saved_landmarks in gesti.items():
