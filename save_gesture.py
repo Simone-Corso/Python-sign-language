@@ -21,7 +21,7 @@ def save_gesture(landmarks, label, count):
 print("Muovi il gesto davanti alla videocamera. Cattura automatica di 100 immagini in corso...")
 
 count = 0
-while cap.isOpened() and count < 100: #scatta il momento fino a 100 volte 
+while cap.isOpened() and count < 100: #scatta il momento fino a 1000 volte ( test )
                                       #(l'ideale per avere una perfomance giusta, sarebbe quella di 1000)
     success, image = cap.read()
     if not success:
@@ -47,7 +47,7 @@ while cap.isOpened() and count < 100: #scatta il momento fino a 100 volte
     if cv2.waitKey(1) & 0xFF == 27:
         break
 
-time.sleep(0.1)  # Attende 100 millisecondi tra ogni cattura
+time.sleep(0.1)  # Attende ( prova di 1000 millisecondi tra ogni cattura) - test.
 
 cap.release()
 cv2.destroyAllWindows()
