@@ -13,16 +13,16 @@ cap = cv2.VideoCapture(1)
 
 # Dizionario per memorizzare i punti di riferimento dei gesti
 gestures = {}
-#WARNING ---> PREMENDO IL TASTO A O B O C PER INDICARE QUALE VUOI SALVARE.
-label = "A"  # Imposta l'etichetta iniziale per il gesto 
+label = "A"  # Imposta l'etichetta iniziale per il gesto
+start_capture = False  # Flag per iniziare la cattura dei gesti
 
 def save_gesture(landmarks, label, count):
     gestures[f"{label}_{count}"] = landmarks
 
-print("Muovi il gesto davanti alla videocamera. Premi 's' per salvare l'immagine con l'etichetta corrente...")
+print("Muovi il gesto davanti alla videocamera. Premi 'a' per selezionare l'etichetta e Invio per iniziare la memorizzazione...")
 
 count = 0
-while cap.isOpened() and count < 1000:
+while cap.isOpened():
     success, image = cap.read()
     if not success:
         continue
@@ -39,26 +39,21 @@ while cap.isOpened() and count < 1000:
             mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
             landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
 
-            # Mostra l'immagine e l'etichetta corrente
-            cv2.putText(image, f'Label: {label}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+            if start_capture:
+                # Salva il gesto automaticamente
+                save_gesture(landmarks, label, count)
+                count += 1
 
     cv2.imshow('Hand Gesture Recognition', image)
     
-    # Controlla i tasti premuti
     key = cv2.waitKey(1) & 0xFF
     if key == 27:  # Esci con ESC
         break
-    elif key == ord('s'):  # Salva il gesto con l'etichetta corrente
-        if results.multi_hand_landmarks:
-            save_gesture(landmarks, label, count)
-            count += 1
-            print(f"Gesto salvato con etichetta {label} - Totale salvati: {count}")
-    elif key == ord('a'):  # Cambia l'etichetta a "A"
-        label = "A"
-        print("Etichetta cambiata a 'A'")
-    elif key == ord('b'):  # Cambia l'etichetta a "B"
-        label = "B"
-        print("Etichetta cambiata a 'B'")
+    elif key == ord('a'):  # Cambia l'etichetta
+        label = input("Inserisci l'etichetta desiderata: ").upper()
+    elif key == 13:  # Invio per iniziare la memorizzazione
+        start_capture = True
+        print("Inizia la memorizzazione...")
 
     time.sleep(0.1)  # Attende 100 millisecondi tra ogni cattura
 
