@@ -13,7 +13,7 @@ cap = cv2.VideoCapture(1)
 
 # Dizionario per memorizzare i punti di riferimento dei gesti
 gestures = {}
-label = "A"  # Imposta l'etichetta iniziale per il gesto
+label = "A"  # Imposta l'etichetta iniziale per il gesto / PREMENDO LA 'A' PER CAMBIARE LA LETTERA.
 label= "B"
 start_capture = False  # Flag per iniziare la cattura dei gesti
 
