@@ -14,6 +14,7 @@ cap = cv2.VideoCapture(1)
 # Dizionario per memorizzare i punti di riferimento dei gesti
 gestures = {}
 label = "A"  # Imposta l'etichetta iniziale per il gesto
+label= "B"
 start_capture = False  # Flag per iniziare la cattura dei gesti
 
 def save_gesture(landmarks, label, count):
