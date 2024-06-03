@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+import os
 
 # Inizializza Mediapipe e OpenCV
 mp_hands = mp.solutions.hands
@@ -11,7 +12,14 @@ mp_drawing = mp.solutions.drawing_utils
 cap = cv2.VideoCapture(1)
 
 # Carica i dati dei gesti
-gesti = np.load('gestures.npy', allow_pickle=True).item()
+folder_path = "sign"
+if not os.path.exists(folder_path):
+    os.makedirs(folder_path)
+file_path = os.path.join(folder_path, 'gesturesA.npy')  # Modifica il nome del file se necessario
+if os.path.exists(file_path):
+    gesti = np.load(file_path, allow_pickle=True).item()
+else:
+    gesti = {}  # Inizializza un dizionario vuoto se il file non esiste
 
 def riconosci_gesto(landmarks):
     for label, saved_landmarks in gesti.items():
