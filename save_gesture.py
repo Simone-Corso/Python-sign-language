@@ -13,16 +13,16 @@ cap = cv2.VideoCapture(1)
 
 # Dizionario per memorizzare i punti di riferimento dei gesti
 gestures = {}
-label = "A"  # Imposta l'etichetta desiderata per il gesto
-label = "B"
+#WARNING ---> PREMENDO IL TASTO A O B O C PER INDICARE QUALE VUOI SALVARE.
+label = "A"  # Imposta l'etichetta iniziale per il gesto 
+
 def save_gesture(landmarks, label, count):
     gestures[f"{label}_{count}"] = landmarks
 
-print("Muovi il gesto davanti alla videocamera. Cattura automatica di 100 immagini in corso...")
+print("Muovi il gesto davanti alla videocamera. Premi 's' per salvare l'immagine con l'etichetta corrente...")
 
 count = 0
-while cap.isOpened() and count < 100: #scatta il momento fino a 1000 volte ( test )
-                                      #(l'ideale per avere una perfomance giusta, sarebbe quella di 1000)
+while cap.isOpened() and count < 1000:
     success, image = cap.read()
     if not success:
         continue
@@ -39,15 +39,28 @@ while cap.isOpened() and count < 100: #scatta il momento fino a 1000 volte ( tes
             mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
             landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
 
-            # Salva il gesto automaticamente
-            save_gesture(landmarks, label, count)
-            count += 1
+            # Mostra l'immagine e l'etichetta corrente
+            cv2.putText(image, f'Label: {label}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
 
     cv2.imshow('Hand Gesture Recognition', image)
-    if cv2.waitKey(1) & 0xFF == 27:
+    
+    # Controlla i tasti premuti
+    key = cv2.waitKey(1) & 0xFF
+    if key == 27:  # Esci con ESC
         break
+    elif key == ord('s'):  # Salva il gesto con l'etichetta corrente
+        if results.multi_hand_landmarks:
+            save_gesture(landmarks, label, count)
+            count += 1
+            print(f"Gesto salvato con etichetta {label} - Totale salvati: {count}")
+    elif key == ord('a'):  # Cambia l'etichetta a "A"
+        label = "A"
+        print("Etichetta cambiata a 'A'")
+    elif key == ord('b'):  # Cambia l'etichetta a "B"
+        label = "B"
+        print("Etichetta cambiata a 'B'")
 
-time.sleep(0.1)  # Attende ( prova di 1000 millisecondi tra ogni cattura) - test.
+    time.sleep(0.1)  # Attende 100 millisecondi tra ogni cattura
 
 cap.release()
 cv2.destroyAllWindows()
