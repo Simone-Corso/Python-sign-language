@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import time
+import os
 
 # Inizializza Mediapipe e OpenCV
 mp_hands = mp.solutions.hands
@@ -61,7 +62,11 @@ while cap.isOpened():
 cap.release()
 cv2.destroyAllWindows()
 
-# Salva i dati dei gesti in un file
-np.save('gestures.npy', gestures)
-print("Gesti salvati in gestures.npy")
+# Salva i dati dei gesti nella cartella specificata
+folder_path = "sign"
+if not os.path.exists(folder_path):
+    os.makedirs(folder_path)
+file_path = os.path.join(folder_path, 'gestures.npy')
+np.save(file_path, gestures)
+print("Gesti salvati in", file_path)
 print(f"Totale immagini catturate: {count}")
