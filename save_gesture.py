@@ -21,7 +21,8 @@ def save_gesture(landmarks, label, count):
 print("Muovi il gesto davanti alla videocamera. Cattura automatica di 100 immagini in corso...")
 
 count = 0
-while cap.isOpened() and count < 100:
+while cap.isOpened() and count < 100: #scatta il momento fino a 100 volte 
+                                      #(l'ideale per avere una perfomance giusta, sarebbe quella di 1000)
     success, image = cap.read()
     if not success:
         continue
