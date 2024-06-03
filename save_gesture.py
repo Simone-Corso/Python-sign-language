@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+import time
 
 # Inizializza Mediapipe e OpenCV
 mp_hands = mp.solutions.hands
@@ -8,18 +9,19 @@ hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_c
 mp_drawing = mp.solutions.drawing_utils
 
 # Avvia la cattura video
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 # Dizionario per memorizzare i punti di riferimento dei gesti
 gestures = {}
+label = "A"  # Imposta l'etichetta desiderata per il gesto
 
-def save_gesture(landmarks, label):
-    gestures[label] = landmarks
+def save_gesture(landmarks, label, count):
+    gestures[f"{label}_{count}"] = landmarks
 
-print("Premi 's' per salvare il gesto corrente, seguito dalla lettera del gesto. Premi 'Esc' per uscire.")
+print("Muovi il gesto davanti alla videocamera. Cattura automatica di 100 immagini in corso...")
 
-
-while cap.isOpened():
+count = 0
+while cap.isOpened() and count < 100:
     success, image = cap.read()
     if not success:
         continue
@@ -36,17 +38,15 @@ while cap.isOpened():
             mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
             landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
 
-            # Mostra i punti di riferimento sullo schermo
-            cv2.putText(image, "Premi 's' per salvare il gesto", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-
-            # Salva il gesto quando viene premuto il tasto 's'
-            if cv2.waitKey(1) & 0xFF == ord('s'):
-                label = input("Inserisci la lettera per il gesto corrente: ")
-                save_gesture(landmarks, label)
+            # Salva il gesto automaticamente
+            save_gesture(landmarks, label, count)
+            count += 1
 
     cv2.imshow('Hand Gesture Recognition', image)
     if cv2.waitKey(1) & 0xFF == 27:
         break
+
+time.sleep(0.1)  # Attende 100 millisecondi tra ogni cattura
 
 cap.release()
 cv2.destroyAllWindows()
@@ -54,3 +54,4 @@ cv2.destroyAllWindows()
 # Salva i dati dei gesti in un file
 np.save('gestures.npy', gestures)
 print("Gesti salvati in gestures.npy")
+print(f"Totale immagini catturate: {count}")

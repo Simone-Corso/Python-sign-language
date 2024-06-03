@@ -8,7 +8,7 @@ hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_c
 mp_drawing = mp.solutions.drawing_utils
 
 # Avvia la cattura video
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 # Carica i dati dei gesti
 gesti = np.load('gestures.npy', allow_pickle=True).item()
