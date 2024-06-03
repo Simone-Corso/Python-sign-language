@@ -14,7 +14,7 @@ cap = cv2.VideoCapture(1)
 # Dizionario per memorizzare i punti di riferimento dei gesti
 gestures = {}
 label = "A"  # Imposta l'etichetta desiderata per il gesto
-
+label = "B"
 def save_gesture(landmarks, label, count):
     gestures[f"{label}_{count}"] = landmarks
 
