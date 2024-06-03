@@ -66,7 +66,7 @@ cv2.destroyAllWindows()
 folder_path = "sign"
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
-file_path = os.path.join(folder_path, 'gestures.npy')
+file_path = os.path.join(folder_path, 'gesturesA.npy') # prova per vedere se salva i file desiderati.
 np.save(file_path, gestures)
 print("Gesti salvati in", file_path)
 print(f"Totale immagini catturate: {count}")
