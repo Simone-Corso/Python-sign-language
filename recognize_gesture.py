@@ -1,9 +1,10 @@
 import cv2
 import mediapipe as mp
-import speech_recognition as sr  # Importiamo la libreria
+import speech_recognition as sr
 import numpy as np
 import os
-import pyttsx3  # Import della libreria
+import pyttsx3
+import threading
 
 # Inizializza il motore di sintesi vocale e il recognizer
 engine = pyttsx3.init()
@@ -16,7 +17,7 @@ mp_drawing = mp.solutions.drawing_utils
 
 # Funzione per la sintesi vocale
 def text_to_speech(text):
-    engine.setProperty('rate', 150)  # La possibilità di regolare la velocità del parlato
+    engine.setProperty('rate', 150)
     engine.say(text)
     engine.runAndWait()
 
@@ -27,7 +28,7 @@ cap = cv2.VideoCapture(0)
 folder_path = "sign"
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
-file_path = os.path.join(folder_path, 'gesturesA.npy')
+file_path = os.path.join(folder_path, 'gestures.npy')
 if os.path.exists(file_path):
     gesti = np.load(file_path, allow_pickle=True).item()
 else:
@@ -39,51 +40,72 @@ def riconosci_gesto(landmarks):
             return label
     return "Gesto sconosciuto"
 
-# Variabile per il sottotitolo, la inizializziamo vuota
+# Variabile globale per il sottotitolo (accessibile da entrambi i thread)
 sottotitolo = ""
+
+# Funzione per il riconoscimento vocale che girerà in un thread separato
+def speech_recognition_thread():
+    global sottotitolo
+    while True:
+        try:
+            with sr.Microphone() as source:
+                audio = r.listen(source, timeout=0.5, phrase_time_limit=1)
+                testo_riconosciuto = r.recognize_google(audio, language="it-IT")
+                sottotitolo = testo_riconosciuto
+        except (sr.UnknownValueError, sr.WaitTimeoutError):
+            pass
+        except Exception as e:
+            sottotitolo = ""
+        
+# Creiamo e avviamo il thread del riconoscimento vocale
+speech_thread = threading.Thread(target=speech_recognition_thread, daemon=True)
+speech_thread.start()
+
+# Variabile per contare i frame e memorizzare il gesto
+frame_counter = 0
+riconosciuto = "Gesto sconosciuto"
 
 while cap.isOpened():
     success, image = cap.read()
     if not success:
         continue
 
+    # Ridimensiona il frame per un'elaborazione più veloce
+    image = cv2.resize(image, (640, 480))
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image = cv2.flip(image, 1)
-    image.flags.writeable = False
-    results = hands.process(image)
-    image.flags.writeable = True
+    
+    # Processa il riconoscimento solo ogni 5 frame per un'esperienza più fluida
+    if frame_counter % 5 == 0:
+        image.flags.writeable = False
+        results = hands.process(image)
+        image.flags.writeable = True
+        
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
+                nuovo_gesto = riconosci_gesto(landmarks)
+                # Controlla se il gesto è cambiato prima di parlare
+                if nuovo_gesto != riconosciuto and nuovo_gesto != "Gesto sconosciuto":
+                    riconosciuto = nuovo_gesto
+                    text_to_speech(riconosciuto)
+        else:
+            riconosciuto = "Gesto sconosciuto"
+
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    
+    # Visualizza il testo del gesto sullo schermo
+    cv2.putText(image, riconosciuto, (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-    # Riconoscimento vocale per i sottotitoli
-    try:
-        with sr.Microphone() as source:
-            # Ascolta per un breve frammento di audio
-            audio = r.listen(source, timeout=0.1, phrase_time_limit=0.5)
-            testo_riconosciuto = r.recognize_google(audio, language="it-IT")
-            sottotitolo = testo_riconosciuto
-    except (sr.UnknownValueError, sr.WaitTimeoutError):
-        # Nessun audio o testo riconosciuto, manteniamo il sottotitolo attuale
-        pass
-    except Exception as e:
-        sottotitolo = ""  # Resetta in caso di errore
-
-    if results.multi_hand_landmarks:
-        for hand_landmarks in results.multi_hand_landmarks:
-            mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-            landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
-            gesto = riconosci_gesto(landmarks)
-            
-            # Visualizza il testo del gesto sullo schermo
-            cv2.putText(image, gesto, (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-            text_to_speech(gesto)
-
-    # Visualizza il sottotitolo riconosciuto dall'audio
+    # Visualizza il sottotitolo, che viene aggiornato in background dall'altro thread
     if sottotitolo:
         cv2.putText(image, sottotitolo, (10, 450), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
+    
     cv2.imshow('Riconoscimento dei gesti', image)
-    if cv2.waitKey(5) & 0xFF == 27:
+    if cv2.waitKey(1) & 0xFF == 27:
         break
+        
+    frame_counter += 1
 
 cap.release()
 cv2.destroyAllWindows()
