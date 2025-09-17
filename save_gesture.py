@@ -14,12 +14,23 @@ cap = cv2.VideoCapture(0)
 
 # Dizionario per memorizzare i punti di riferimento dei gesti
 gestures = {}
-label = "A"  # Imposta l'etichetta iniziale per il gesto / PREMENDO LA 'A' PER CAMBIARE LA LETTERA.
+label = "A"  # Imposta l'etichetta iniziale per il gesto
 
 start_capture = False  # Flag per iniziare la cattura dei gesti
 
+# Funzione per salvare i gesti
 def save_gesture(landmarks, label, count):
     gestures[f"{label}_{count}"] = landmarks
+
+# 🚀 Carichiamo i gesti esistenti prima di catturarne di nuovi
+folder_path = "sign"
+if not os.path.exists(folder_path):
+    os.makedirs(folder_path)
+
+file_path = os.path.join(folder_path, 'gestures.npy')
+if os.path.exists(file_path):
+    gestures = np.load(file_path, allow_pickle=True).item()
+    print("Gesti esistenti caricati.")
 
 print("Muovi il gesto davanti alla videocamera. Premi 'a' per selezionare l'etichetta e Invio per iniziare la memorizzazione...")
 
@@ -45,17 +56,23 @@ while cap.isOpened():
                 # Salva il gesto automaticamente
                 save_gesture(landmarks, label, count)
                 count += 1
+                
+    # Visualizza l'etichetta corrente
+    cv2.putText(image, f"Etichetta: {label}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+    if start_capture:
+        cv2.putText(image, f"Cattura: {count}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
     cv2.imshow('Hand Gesture Recognition', image)
     
-    key = cv2.waitKey(1) & 0xFF
+    key = cv2.waitKey(3) & 0xFF
     if key == 27:  # Esci con ESC
         break
     elif key == ord('a'):  # Cambia l'etichetta
+        start_capture = False
         label = input("Inserisci l'etichetta desiderata: ").upper()
     elif key == 13:  # Invio per iniziare la memorizzazione
         start_capture = True
-        print("Inizia la memorizzazione...")
+        print(f"Inizia la memorizzazione del gesto: {label}")
 
     time.sleep(0.1)  # Attende 100 millisecondi tra ogni cattura
 
@@ -63,10 +80,6 @@ cap.release()
 cv2.destroyAllWindows()
 
 # Salva i dati dei gesti nella cartella specificata
-folder_path = "sign"
-if not os.path.exists(folder_path):
-    os.makedirs(folder_path)
-file_path = os.path.join(folder_path, 'gesturesA.npy') # prova per vedere se salva i file desiderati.
 np.save(file_path, gestures)
-print("Gesti salvati in", file_path)
+print("Tutti i gesti salvati in", file_path)
 print(f"Totale immagini catturate: {count}")
